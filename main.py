@@ -1,3 +1,42 @@
+# Coffee Maker Game - Development Log
+
+# v1.0 - Initial Concept
+# - Set up basic Pygame loop and window.
+# - Created a start screen and game state management.
+# - Defined six coffee recipes with associated key inputs (E, F, M, W).
+# - Randomized customer orders and validated key inputs to match the recipe.
+
+# v1.1 - Visual Enhancements
+# - Designed and integrated six individual coffee images.
+# - Displayed customer order with an associated image of the drink.
+# - Created a static legend showing key mappings on the left side of the screen.
+
+# v1.2 - Interactive Feedback
+# - Implemented immediate feedback with colored text messages for correctness.
+# - Made pressed keys glow pink in the key legend.
+# - Used white, green, and red color cues to communicate results.
+
+# v1.3 - Score and Combo System
+# - Added a combo multiplier and score tracking system.
+# - Score increases with each correct drink, and combo multiplies the score.
+# - Game no longer ends after a correct drink; play continues until a mistake.
+
+# v1.4 - Sound Integration
+# - Added a 'ding' sound when a drink is made correctly.
+# - Added a 'buzzer' sound for incorrect attempts.
+
+# v1.5 - Timer Mechanic
+# - Introduced a 5-second countdown timer for each drink.
+# - If the timer reaches zero, the game ends with an "Incorrect!" message.
+
+# v1.6 - UI Polish
+# - Countdown timer is now visible in the top-right corner.
+# - Adjusted the timer font size and position for a clean look.
+# - Moved score and combo text to the bottom-left corner.
+# - Changed background color to a cozy brown cafe tone.
+
+# --- Game Code Starts Below ---
+
 import pygame
 import random
 import sys
