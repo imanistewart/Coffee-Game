@@ -8,6 +8,7 @@
 
 # v1.1 - Visual Enhancements
 # - Designed and integrated six individual coffee images.
+# - Coffee image source: https://www.homestratosphere.com/wp-content/uploads/2019/05/A-quick-guide-to-types-of-coffee-you-can-order-4-14-5.jpg
 # - Displayed customer order with an associated image of the drink.
 # - Created a static legend showing key mappings on the left side of the screen.
 
