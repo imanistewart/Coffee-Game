@@ -1,20 +1,27 @@
 import pygame
 import random
 import sys
+import time
 
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Coffee Maker Game")
 font = pygame.font.Font(None, 48)
+small_font = pygame.font.Font(None, 32)
+timer_font = pygame.font.Font(None, 28)
 clock = pygame.time.Clock()
 
 # Colors
 WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+BROWN = (73, 40, 21)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 PINK = (255, 105, 180)
+
+# Sounds
+ding_sound = pygame.mixer.Sound("ding.wav")
+buzz_sound = pygame.mixer.Sound("buzz.wav")
 
 # Game states
 START, ORDER, PLAYING, RESULT, END = range(5)
@@ -30,17 +37,21 @@ drinks = {
     "Americano": ['E', 'W']
 }
 
-# Random order
-def get_random_order():
-    return random.choice(list(drinks.items()))
+def get_random_order(last_order):
+    options = list(drinks.items())
+    if last_order:
+        options = [drink for drink in options if drink[0] != last_order]
+    return random.choice(options)
 
 # Game variables
 current_order = None
+last_order_name = None
 inputs = []
 message = ""
 message_color = WHITE
-fade_out = False
-fade_alpha = 0
+score = 0
+combo = 0
+start_time = 0
 
 # Load coffee images
 coffee_images = {
@@ -55,7 +66,8 @@ coffee_images = {
 # Main game loop
 running = True
 while running:
-    screen.fill((73, 40, 22))
+    screen.fill(BROWN)
+    current_time = time.time()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -63,12 +75,16 @@ while running:
 
         if game_state == START:
             if event.type == pygame.KEYDOWN:
+                score = 0
+                combo = 0
                 game_state = ORDER
 
         elif game_state == ORDER:
-            current_order = get_random_order()
+            current_order = get_random_order(last_order_name)
+            last_order_name = current_order[0]
             inputs = []
             message = ""
+            start_time = time.time()
             game_state = PLAYING
 
         elif game_state == PLAYING:
@@ -79,21 +95,20 @@ while running:
                     if sorted(inputs) == sorted(current_order[1]):
                         message = "Correct!"
                         message_color = GREEN
-                        game_state = RESULT
+                        combo += 1
+                        score += 10 * combo
+                        ding_sound.play()
+                        game_state = ORDER
                     elif not all(k in current_order[1] for k in inputs):
                         message = "Incorrect!"
                         message_color = RED
-                        game_state = RESULT
-
-        elif game_state == RESULT:
-            if not fade_out:
-                fade_out = True
+                        combo = 0
+                        buzz_sound.play()
+                        game_state = END
 
         elif game_state == END:
             if event.type == pygame.KEYDOWN:
                 game_state = START
-                fade_out = False
-                fade_alpha = 0
 
     if game_state == START:
         text = font.render("Press any key to start", True, WHITE)
@@ -103,6 +118,14 @@ while running:
         pass
 
     elif game_state == PLAYING:
+        elapsed_time = current_time - start_time
+        if elapsed_time > 5:
+            message = "Incorrect!"
+            message_color = RED
+            combo = 0
+            buzz_sound.play()
+            game_state = END
+
         order_text = font.render(f"Customer: I'd like a {current_order[0]}", True, WHITE)
         screen.blit(order_text, (100, 50))
         coffee_image = coffee_images[current_order[0]]
@@ -115,22 +138,24 @@ while running:
             legend = font.render(f"{key}: {label}", True, color)
             screen.blit(legend, (50, 150 + idx * 40))
 
-    elif game_state == RESULT:
-        result_text = font.render(message, True, message_color)
-        screen.blit(result_text, (300, 250))
-        if fade_out:
-            fade_surface = pygame.Surface((800, 600))
-            fade_surface.fill(BLACK)
-            fade_alpha += 5
-            if fade_alpha >= 255:
-                fade_alpha = 255
-                game_state = END
-            fade_surface.set_alpha(fade_alpha)
-            screen.blit(fade_surface, (0, 0))
+        # Display score and combo at bottom left
+        score_text = small_font.render(f"Score: {score}", True, WHITE)
+        combo_text = small_font.render(f"Combo: x{combo}", True, WHITE)
+        screen.blit(score_text, (30, 520))
+        screen.blit(combo_text, (30, 560))
+
+        # Display countdown timer (smaller and further right)
+        time_left = max(0, 5 - int(elapsed_time))
+        timer_text = timer_font.render(f"Time Left: {time_left}", True, WHITE)
+        screen.blit(timer_text, (690, 10))
 
     elif game_state == END:
+        result_text = font.render(message, True, message_color)
+        screen.blit(result_text, (300, 250))
         restart_text = font.render("Restart? Press any key", True, WHITE)
-        screen.blit(restart_text, (200, 250))
+        final_score = font.render(f"Final Score: {score}", True, WHITE)
+        screen.blit(restart_text, (200, 320))
+        screen.blit(final_score, (250, 380))
 
     pygame.display.flip()
     clock.tick(30)
